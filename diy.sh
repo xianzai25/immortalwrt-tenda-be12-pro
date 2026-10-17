@@ -1,4 +1,5 @@
 #!/bin/bash
+#
 # Merged DIY script for OpenWrt build pipeline.
 # Usage:
 #   ./diy.sh pre   # before feeds update/install
@@ -15,22 +16,18 @@ case "$STAGE" in
     ;;
 
   feeds)
-    echo "=== 开始注入新版内核并强行修复最新 PassWall2 依赖缺失问题 ==="
-    
-    # 1. 强制提升编译内核所需的 Golang 版本，防止新版内核因 Go 版本过旧编译失败
-    rm -rf feeds/packages/lang/golang
-    git clone --depth=1 https://github.com feeds/packages/lang/golang
+    # Pin external sources for reproducible builds. Override via env if needed.
+    PASSWALL2_REF="${PASSWALL2_REF:-cc074ed776579849ae68aec303eb85867b4dc4ee}"
+    PASSWALL_PACKAGES_REF="${PASSWALL_PACKAGES_REF:-e13e4631699ef9f0e826d36d3be56a67a82924c9}"
 
-    # 2. 强行修复新版 PassWall2 所必需的、但上游缺失的 geoview 依赖包组件
-    mkdir -p package/custom-deps
-    rm -rf package/custom-deps/geoview
-    git clone --depth=1 https://github.com package/custom-deps/temp_pkgs
-    if [ -d "package/custom-deps/temp_pkgs/geoview" ]; then
-        mv package/custom-deps/temp_pkgs/geoview package/custom-deps/geoview
+    if [ -d feeds/passwall2/.git ]; then
+      git -C feeds/passwall2 fetch --depth=1 origin "$PASSWALL2_REF"
+      git -C feeds/passwall2 checkout --detach "$PASSWALL2_REF"
     fi
-    rm -rf package/custom-deps/temp_pkgs
-
-    echo "=== 最新的 Golang、geoview 补丁包注入成功 ==="
+    if [ -d feeds/passwall_packages/.git ]; then
+      git -C feeds/passwall_packages fetch --depth=1 origin "$PASSWALL_PACKAGES_REF"
+      git -C feeds/passwall_packages checkout --detach "$PASSWALL_PACKAGES_REF"
+    fi
     ;;
 
   post)
