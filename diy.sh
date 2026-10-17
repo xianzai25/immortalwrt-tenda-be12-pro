@@ -16,18 +16,21 @@ case "$STAGE" in
     ;;
 
   feeds)
-    # Pin external sources for reproducible builds. Override via env if needed.
-    PASSWALL2_REF="${PASSWALL2_REF:-cc074ed776579849ae68aec303eb85867b4dc4ee}"
-    PASSWALL_PACKAGES_REF="${PASSWALL_PACKAGES_REF:-e13e4631699ef9f0e826d36d3be56a67a82924c9}"
+    echo "=== 开始更新 PassWall2 插件与内核依赖为最新版 ==="
+    
+    # 1. 强制克隆最新版的 PassWall LuCI 界面 (main 分支)
+    rm -rf feeds/passwall2
+    git clone --depth=1 -b main https://github.com feeds/passwall2
 
-    if [ -d feeds/passwall2/.git ]; then
-      git -C feeds/passwall2 fetch --depth=1 origin "$PASSWALL2_REF"
-      git -C feeds/passwall2 checkout --detach "$PASSWALL2_REF"
-    fi
-    if [ -d feeds/passwall_packages/.git ]; then
-      git -C feeds/passwall_packages fetch --depth=1 origin "$PASSWALL_PACKAGES_REF"
-      git -C feeds/passwall_packages checkout --detach "$PASSWALL_PACKAGES_REF"
-    fi
+    # 2. 强制克隆最新版的 PassWall 依赖核心（包含最新 Xray-core, Sing-box 等）
+    rm -rf feeds/passwall_packages
+    git clone --depth=1 -b main https://github.com feeds/passwall_packages
+
+    # 3. 强制提升编译内核所需的 Golang 版本，防止新版内核因 Go 版本过旧编译失败
+    rm -rf feeds/packages/lang/golang
+    git clone --depth=1 https://github.com feeds/packages/lang/golang
+
+    echo "=== PassWall2 及 Golang 环境更新完成 ==="
     ;;
 
   post)
