@@ -16,17 +16,17 @@ case "$STAGE" in
     ;;
 
   feeds)
-    # Pin external sources for reproducible builds. Override via env if needed.
-    PASSWALL2_REF="${PASSWALL2_REF:-cc074ed776579849ae68aec303eb85867b4dc4ee}"
-    PASSWALL_PACKAGES_REF="${PASSWALL_PACKAGES_REF:-e13e4631699ef9f0e826d36d3be56a67a82924c9}"
+    # 自动拉取/更新并切换到最新 passwall2 及其依赖源（不锁定旧 commit，确保获取最新）
+    PASSWALL2_REF="${PASSWALL2_REF:-HEAD}"
+    PASSWALL_PACKAGES_REF="${PASSWALL_PACKAGES_REF:-HEAD}"
 
     if [ -d feeds/passwall2/.git ]; then
-      git -C feeds/passwall2 fetch --depth=1 origin "$PASSWALL2_REF"
-      git -C feeds/passwall2 checkout --detach "$PASSWALL2_REF"
+      git -C feeds/passwall2 fetch --depth=1 origin
+      git -C feeds/passwall2 checkout --detach origin/main || git -C feeds/passwall2 checkout --detach origin/master
     fi
     if [ -d feeds/passwall_packages/.git ]; then
-      git -C feeds/passwall_packages fetch --depth=1 origin "$PASSWALL_PACKAGES_REF"
-      git -C feeds/passwall_packages checkout --detach "$PASSWALL_PACKAGES_REF"
+      git -C feeds/passwall_packages fetch --depth=1 origin
+      git -C feeds/passwall_packages checkout --detach origin/main || git -C feeds/passwall_packages checkout --detach origin/master
     fi
     ;;
 
